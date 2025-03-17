@@ -10,21 +10,25 @@ services:
     networks:
       - app-network
 
-  frontend:
-    build: ./front-end
-    ports:
-      - "3000:3000"  # Exposes frontend on port 3000
-    depends_on:
-      - backend
-    networks:
-      - app-network
+  #frontend:
+    #profiles:
+    #  - ignore
+    #build: ./front-end
+    #ports:
+    #  - "3000:3000"  # Exposes frontend on port 3000
+    #depends_on:
+    #  - backend
+    #networks:
+    #  - app-network
 
-  ai:
-    build: ./Ai
-    ports:
-      - "8000:8000"  # AI model runs on port 8000
-    networks:
-      - app-network
+  #ai:
+    #profiles:
+    #  - ignore
+    #build: ./Ai
+    #ports:
+    #  - "8000:8000"  # AI model runs on port 8000
+    #networks:
+    #  - app-network
 
 networks:
   app-network:

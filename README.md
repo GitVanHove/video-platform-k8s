@@ -3,7 +3,11 @@
 🚀 Start Docker & Kubernetes (K3s)
 1️⃣ Start Docker
 Run this in Ubuntu:
-go to  -> /mnt/c/Users/(user)/Documents/GitHub/video-platform-k8s/k8s
+go to  -> /mnt/c/Users/(user)/Documents/GitHub/video-platform-k8s
+
+chmod +x k3s/start.sh k3s/stop.sh
+
+# Manual start up
 
 sudo systemctl start docker
 Check if Docker is running:
