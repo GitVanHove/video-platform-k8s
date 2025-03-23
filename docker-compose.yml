@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./front-end  # Path to your frontend folder
+    ports:
+      - "3000:3000"  # Maps container port to your machine
+    volumes:
+      - ./front-end:/app  # Sync local changes with the container
+      - /app/node_modules  # Avoids overwriting node_modules
+    stdin_open: true  # Keep terminal open (useful for React)
+    tty: true  # Allocates a pseudo-TTY
