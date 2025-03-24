@@ -91,6 +91,18 @@ def get_video(user_id, filename):
 
     return send_from_directory(user_folder, filename)
 
+# Delete Video
+@app.route("/video/<int:user_id>/<string:filename>", methods=["DELETE"])
+def delete_video(user_id, filename):
+    user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
+    file_path = os.path.join(user_folder, filename)
+
+    if not os.path.exists(file_path):
+        return jsonify({"error": "Video not found"}), 404
+
+    os.remove(file_path)
+    return jsonify({"message": "Video deleted successfully"})
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)    
