@@ -55,6 +55,10 @@ def login():
             return jsonify({"message": "Login successful", "user_id": user["id"]})
         return jsonify({"error": "Invalid credentials"}), 401
 
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True)
+
 #  Upload Video
 @app.route("/upload/<int:user_id>", methods=["POST"])
 def upload_video(user_id):
