@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "C:\Users\Kevin Van Hove\Documents\GitHub\video-platform-k8s\AI-job\process_video.py", line 44, in <module>
+    process_video(video_path, user_id)
+  File "C:\Users\Kevin Van Hove\Documents\GitHub\video-platform-k8s\AI-job\process_video.py", line 19, in process_video
+    results = model(video_path)  # Run YOLO on the video
+  File "C:\Python310\lib\site-packages\ultralytics\engine\model.py", line 182, in __call__
+    return self.predict(source, stream, **kwargs)
+  File "C:\Python310\lib\site-packages\ultralytics\engine\model.py", line 550, in predict
+    return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+  File "C:\Python310\lib\site-packages\ultralytics\engine\predictor.py", line 214, in __call__
+    return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+  File "C:\Python310\lib\site-packages\torch\utils\_contextlib.py", line 36, in generator_context
+    response = gen.send(None)
+  File "C:\Python310\lib\site-packages\ultralytics\engine\predictor.py", line 295, in stream_inference
+    self.setup_source(source if source is not None else self.args.source)
+  File "C:\Python310\lib\site-packages\ultralytics\engine\predictor.py", line 255, in setup_source
+    self.dataset = load_inference_source(
+  File "C:\Python310\lib\site-packages\ultralytics\data\build.py", line 253, in load_inference_source
+    dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
+  File "C:\Python310\lib\site-packages\ultralytics\data\loaders.py", line 342, in __init__
+    raise FileNotFoundError(f"{p} does not exist")
+FileNotFoundError: uploads\1\gilf2.gif does not exist

@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify, send_from_directory
+import subprocess
 import sqlite3
 import bcrypt
 import os
+import sys
 
 app = Flask(__name__)
 DATABASE = "users.db"
@@ -42,7 +44,7 @@ def init_db():
 
         conn.commit()
     print("Database initialized with hardcoded users")
-    
+
 # login route
 @app.route("/login", methods=["POST"])
 def login():
@@ -66,12 +68,31 @@ def upload_video(user_id):
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
+    # Save the uploaded file
     user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
-    os.makedirs(user_folder, exist_ok=True)  # Ensure user directory exists
+    os.makedirs(user_folder, exist_ok=True)  
     file_path = os.path.join(user_folder, file.filename)
     file.save(file_path)
 
-    return jsonify({"message": "Video uploaded successfully", "file_path": file_path})
+    print(f"Starting AI job for: {file_path}")  # Debugging
+
+    # Absolute path of AI-job
+    AI_JOB_PATH = os.path.abspath("../AI-job/process_video.py")
+    
+    try:
+        # Run AI processing separately, inside AI-job/
+        subprocess.Popen(
+            [sys.executable, AI_JOB_PATH, file_path, str(user_id)],
+            stdout=open("ai_output.log", "w"),  
+            stderr=open("ai_error.log", "w"),
+            cwd=os.path.dirname(AI_JOB_PATH),  # Ensure it runs inside AI-job
+            start_new_session=True
+        )
+    except Exception as e:
+        print(f"Error starting AI job: {e}")
+        return jsonify({"error": f"Error processing video: {e}"}), 500
+
+    return jsonify({"message": "Video uploaded successfully, AI processing started"})
 
 # All Videos for User
 @app.route("/videos/<int:user_id>", methods=["GET"])

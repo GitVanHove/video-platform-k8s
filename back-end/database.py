@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
+import subprocess
 import sqlite3
 import bcrypt
 import os
@@ -54,11 +55,6 @@ def login():
         if user and bcrypt.checkpw(password, user["password"]):
             return jsonify({"message": "Login successful", "user_id": user["id"]})
         return jsonify({"error": "Invalid credentials"}), 401
-
-if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
-
 #  Upload Video
 @app.route("/upload/<int:user_id>", methods=["POST"])
 def upload_video(user_id):
@@ -70,12 +66,30 @@ def upload_video(user_id):
         return jsonify({"error": "No selected file"}), 400
 
     user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
-    os.makedirs(user_folder, exist_ok=True)  # Ensure user directory exists
+    os.makedirs(user_folder, exist_ok=True)  
     file_path = os.path.join(user_folder, file.filename)
     file.save(file_path)
 
-    return jsonify({"message": "Video uploaded successfully", "file_path": file_path})
+    print(f"Starting AI job for: {file_path}")  # Debugging line
 
+    # Run AI job
+    try:
+        process = subprocess.Popen(
+            ["python", "../AI-job/process_video.py", file_path, str(user_id)],
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE
+        )
+
+        stdout, stderr = process.communicate()
+
+        print("AI Output:", stdout.decode())  
+        print("AI Errors:", stderr.decode()) 
+
+    except Exception as e:
+        print(f"Error starting AI job: {e}")
+        return jsonify({"error": f"Error processing video: {e}"}), 500
+
+    return jsonify({"message": "Video uploaded successfully, AI processing started"})
 # All Videos for User
 @app.route("/videos/<int:user_id>", methods=["GET"])
 def get_user_videos(user_id):
