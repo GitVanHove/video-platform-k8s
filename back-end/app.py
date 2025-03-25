@@ -42,6 +42,7 @@ def init_db():
 
         conn.commit()
     print("Database initialized with hardcoded users")
+    
 # login route
 @app.route("/login", methods=["POST"])
 def login():

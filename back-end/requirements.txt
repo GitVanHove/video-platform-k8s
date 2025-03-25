@@ -1,2 +1,10 @@
 Flask
+flask
+flask-cors
+flask-sqlalchemy
+flask-migrate
+flask-jwt-extended
+flask-bcrypt
+werkzeug
+ultralytics
 gunicorn  # For production use
