@@ -5,6 +5,8 @@ import bcrypt
 import os
 import sys
 
+from utils import wait_for_file 
+
 app = Flask(__name__)
 DATABASE = "users.db"
 
@@ -68,31 +70,26 @@ def upload_video(user_id):
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
-    # Save the uploaded file
-    user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
-    os.makedirs(user_folder, exist_ok=True)  
+    user_folder = os.path.join(app.config["UPLOAD_FOLDER"], str(user_id))
+    os.makedirs(user_folder, exist_ok=True)
     file_path = os.path.join(user_folder, file.filename)
     file.save(file_path)
 
-    print(f"Starting AI job for: {file_path}")  # Debugging
+    if not wait_for_file(file_path):
+        return jsonify({"error": "File was not fully saved!"}), 500
 
-    # Absolute path of AI-job
-    AI_JOB_PATH = os.path.abspath("../AI-job/process_video.py")
-    
+    absolute_file_path = os.path.abspath(file_path)
+
+    print(f"Starting AI job for: {absolute_file_path}")  # Debugging line
+
     try:
-        # Run AI processing separately, inside AI-job/
-        subprocess.Popen(
-            [sys.executable, AI_JOB_PATH, file_path, str(user_id)],
-            stdout=open("ai_output.log", "w"),  
-            stderr=open("ai_error.log", "w"),
-            cwd=os.path.dirname(AI_JOB_PATH),  # Ensure it runs inside AI-job
-            start_new_session=True
-        )
+        subprocess.Popen(["python", "../AI-job/process_video.py", absolute_file_path, str(user_id)], 
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except Exception as e:
         print(f"Error starting AI job: {e}")
-        return jsonify({"error": f"Error processing video: {e}"}), 500
+        return jsonify({"error": "Failed to start AI processing"}), 500
 
-    return jsonify({"message": "Video uploaded successfully, AI processing started"})
+    return jsonify({"message": "Video uploaded successfully, AI processing started!"})
 
 # All Videos for User
 @app.route("/videos/<int:user_id>", methods=["GET"])
