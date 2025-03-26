@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 import subprocess
+import requests
 import sqlite3
 import bcrypt
 import os
@@ -11,7 +12,9 @@ app = Flask(__name__)
 DATABASE = "users.db"
 
 UPLOAD_FOLDER = "uploads"
+RESULTS_FOLDER = "results"  
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["RESULTS_FOLDER"] = RESULTS_FOLDER
 
 
 # Function to connect to database
@@ -80,17 +83,26 @@ def upload_video(user_id):
 
     absolute_file_path = os.path.abspath(file_path)
 
-    print(f"Starting AI job for: {absolute_file_path}")  # Debugging line
+    print(f"Starting AI job for: {absolute_file_path}")  
 
     try:
-        subprocess.Popen(["python", "../AI-job/process_video.py", absolute_file_path, str(user_id)], 
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # Define the AI service URL (running in the ai-job container)
+        ai_service_url = 'http://ai-job:5001/process_video'
+
+        # Send POST request to the AI service with video and user ID
+        with open(file_path, 'rb') as video_file:
+            files = {'video': video_file}
+            data = {'user_id': user_id}
+            response = requests.post(ai_service_url, files=files, data=data)
+
+        if response.status_code == 200:
+            return jsonify({"message": "AI processing started successfully", "result_path": response.json()['result_path']}), 200
+        else:
+            raise Exception(f"Failed to start AI processing: {response.text}")
+
     except Exception as e:
-        print(f"Error starting AI job: {e}")
-        return jsonify({"error": "Failed to start AI processing"}), 500
-
-    return jsonify({"message": "Video uploaded successfully, AI processing started!"})
-
+        return jsonify({"error": str(e)}), 500
+    
 # All Videos for User
 @app.route("/videos/<int:user_id>", methods=["GET"])
 def get_user_videos(user_id):
@@ -124,4 +136,4 @@ def delete_video(user_id, filename):
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)    
+    app.run(host="0.0.0.0", port=5000,debug=True)    

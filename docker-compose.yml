@@ -1,25 +1,46 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./front-end 
-      - "3000:3000"  
-    volumes:
-      - ./front-end:/app  
-      - /app/node_modules  
-    stdin_open: true  
-    tty: true  
   backend:
-    build: ./backend
+    build: ./back-end
     ports:
       - "5000:5000"
     volumes:
-      - ./backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./back-end/uploads:/app/uploads
+      - ./back-end/results:/app/results
     restart: always
+    depends_on:
+      - ai-job
+    networks:
+      - mynetwork  # Add this line
 
   ai-job:
-    build: ./ai-job
+    build: ./AI-job
     volumes:
-      - ./ai-job:/app
-    restart: always  
+      - ./back-end/uploads:/app/uploads
+      - ./back-end/results:/app/results
+      - ./AI-job:/models
+    command: ["python", "process_video.py"]  # Make sure this is the correct command to run your AI service
+    restart: always
+    ports:
+      - "5001:5001"  # Exposing port 5001
+    networks:
+      - mynetwork  # Add this line
+
+  frontend:
+    build:
+      context: ./front-end
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./front-end:/app
+      - /node_modules
+    stdin_open: true
+    tty: true
+    networks:
+      - mynetwork  # Add this line
+
+networks:
+  mynetwork:  # Define the network
+    driver: bridge

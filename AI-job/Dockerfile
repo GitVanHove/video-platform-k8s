@@ -5,13 +5,18 @@ WORKDIR /app
 
 # Install dependencies
 COPY requirements.txt .
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && apt-get clean
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Ultralytics YOLOv8
-RUN pip install ultralytics
 
 # Copy AI job script
-COPY . .
+COPY . . 
+
+# Expose the Flask API port
+EXPOSE 5001
 
 # Default command (change if needed)
-CMD ["python", "process.py"]
+CMD ["python", "process_video.py"]

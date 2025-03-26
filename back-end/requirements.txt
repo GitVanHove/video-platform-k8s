@@ -5,6 +5,5 @@ flask-sqlalchemy
 flask-migrate
 flask-jwt-extended
 flask-bcrypt
+requests
 werkzeug
-ultralytics
-gunicorn  # For production use

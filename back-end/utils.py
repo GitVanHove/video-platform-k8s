@@ -6,6 +6,6 @@ def wait_for_file(file_path, timeout=5):
     start_time = time.time()
     while not os.path.exists(file_path):
         if time.time() - start_time > timeout:
-            return False  # File did not appear within timeout
-        time.sleep(0.5)  # Check every 0.5 seconds
+            return False 
+        time.sleep(0.5) 
     return True
