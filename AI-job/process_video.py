@@ -1,7 +1,6 @@
 from ultralytics import YOLO
 import logging
 import json
-import sys
 import os
 from flask import Flask, request, jsonify
 

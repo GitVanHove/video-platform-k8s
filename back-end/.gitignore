@@ -1,0 +1,15 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# content
+/results/
+*.mp4
+*.avi
+*.mov
+*.json
+/uploads/
+*.mp4
+*.avi
+*.mov
+
+
+
