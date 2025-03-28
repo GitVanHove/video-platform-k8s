@@ -3,7 +3,8 @@ import requests
 import sqlite3
 import bcrypt
 import os
-import time
+import uuid
+import random
 
 
 from utils import wait_for_file 
@@ -15,6 +16,7 @@ UPLOAD_FOLDER = "uploads"
 RESULTS_FOLDER = "results"  
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["RESULTS_FOLDER"] = RESULTS_FOLDER
+ALLOWED_EXTENSIONS = {'.mp4', '.gif', '.avi', '.mov'}
 
 
 # Function to connect to database
@@ -63,7 +65,15 @@ def login():
             return jsonify({"message": "Login successful", "user_id": user["id"]})
         return jsonify({"error": "Invalid credentials"}), 401
 
-#  Upload Video
+# Helper: Generate unique filename with correct extension
+def generate_unique_filename(user_id, original_filename):
+    file_extension = os.path.splitext(original_filename)[1].lower()
+    if file_extension not in ALLOWED_EXTENSIONS:
+        return None  
+    unique_id = uuid.uuid4().hex[:8]  
+    return f"{user_id}_{unique_id}{file_extension}"
+
+# Upload Video
 @app.route("/upload/<int:user_id>", methods=["POST"])
 def upload_video(user_id):
     if "video" not in request.files:
@@ -73,66 +83,125 @@ def upload_video(user_id):
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
-    user_folder = os.path.join(app.config["UPLOAD_FOLDER"], str(user_id))
-    os.makedirs(user_folder, exist_ok=True)
-    file_path = os.path.join(user_folder, file.filename)
-    file.save(file_path)
+    # Ensure valid file extension
+    unique_filename = generate_unique_filename(user_id, file.filename)
+    if not unique_filename:
+        return jsonify({"error": "Invalid file format"}), 400
 
-    if not wait_for_file(file_path):
+    # Save video in user-specific folder
+    user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
+    os.makedirs(user_folder, exist_ok=True)
+    
+    video_path = os.path.join(user_folder, unique_filename)
+    file.save(video_path)
+
+    # Ensure file was fully saved
+    if not os.path.exists(video_path):
         return jsonify({"error": "File was not fully saved!"}), 500
 
-    absolute_file_path = os.path.abspath(file_path)
+    absolute_file_path = os.path.abspath(video_path)
 
-    print(f"Starting AI job for: {absolute_file_path}")  
-
+    # Start AI job
     try:
-        # Define the AI service URL (running in the ai-job container)
         ai_service_url = 'http://ai-job:5001/process_video'
 
-        # Send POST request to the AI service with video and user ID
-        with open(file_path, 'rb') as video_file:
+        with open(video_path, 'rb') as video_file:
             files = {'video': video_file}
             data = {'user_id': user_id}
             response = requests.post(ai_service_url, files=files, data=data)
 
         if response.status_code == 200:
-            return jsonify({"message": "AI processing started successfully", "result_path": response.json()['result_path']}), 200
+            return jsonify({
+                "message": "AI processing started successfully",
+                "video_filename": unique_filename
+            }), 200
         else:
-            raise Exception(f"Failed to start AI processing: {response.text}")
+            return jsonify({
+                "error": f"Failed to start AI processing: {response.text}"
+            }), 500
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"AI service request failed: {str(e)}"}), 500
+
+
 # All Videos for User
 @app.route("/videos/<int:user_id>", methods=["GET"])
 def get_user_videos(user_id):
     user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
     if not os.path.exists(user_folder):
-        return jsonify({"videos": []})  # Return empty list if no videos
+        return jsonify({"videos": []}) 
 
     videos = os.listdir(user_folder)
     return jsonify({"videos": videos})
 
 # Detail Page
-@app.route("/video/<int:user_id>/<string:filename>", methods=["GET"])
-def get_video(user_id, filename):
+@app.route("/detail/<int:user_id>/<string:video_filename>", methods=["GET"])
+def get_video_and_json(user_id, video_filename):
+    # Path to user's folder in the uploads directory
     user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
-    if not os.path.exists(os.path.join(user_folder, filename)):
+    
+    # The path to the result JSON file in the results folder (no user subfolder)
+    json_filename = video_filename.replace(".mp4", ".json").replace(".gif", ".json")
+    json_path = os.path.join(RESULTS_FOLDER, json_filename)
+
+    # Construct the video file path in the user's folder
+    video_path = os.path.join(user_folder, video_filename)
+
+    # Check if video file exists
+    if not os.path.exists(video_path):
         return jsonify({"error": "Video not found"}), 404
 
-    return send_from_directory(user_folder, filename)
+    # Check if the JSON file exists
+    if not os.path.exists(json_path):
+        return jsonify({"error": "JSON file not found"}), 404
+
+    # Construct URLs for video and JSON
+    video_url = f"http://127.0.0.1:5000/video/{user_id}/{video_filename}"
+    json_url = f"http://127.0.0.1:5000/json/{json_filename}"
+
+    # Return the video URL and JSON URL
+    return jsonify({
+        "video_url": video_url,
+        "json_url": json_url
+    }), 200
+
+# Serve the video file from the uploads folder
+@app.route("/video/<int:user_id>/<string:video_filename>", methods=["GET"])
+def get_video(user_id, video_filename):
+    user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
+    return send_from_directory(user_folder, video_filename)
+
+# Serve the JSON file from the results folder
+@app.route("/json/<string:json_filename>", methods=["GET"])
+def get_json(json_filename):
+    return send_from_directory(RESULTS_FOLDER, json_filename)
+
 
 # Delete Video
-@app.route("/video/<int:user_id>/<string:filename>", methods=["DELETE"])
-def delete_video(user_id, filename):
+@app.route("/video/<int:user_id>/<string:video_filename>", methods=["DELETE"])
+def delete_video(user_id, video_filename):
     user_folder = os.path.join(UPLOAD_FOLDER, str(user_id))
-    file_path = os.path.join(user_folder, filename)
+    video_path = os.path.join(user_folder, video_filename)
+    
+    # Dynamically replace video file extension with .json
+    base_filename = os.path.splitext(video_filename)[0]  # Remove extension
+    json_filename = f"{base_filename}.json"
+    json_path = os.path.join(RESULTS_FOLDER, json_filename)
 
-    if not os.path.exists(file_path):
+    # Remove the video file
+    if os.path.exists(video_path):
+        os.remove(video_path)
+    else:
         return jsonify({"error": "Video not found"}), 404
 
-    os.remove(file_path)
-    return jsonify({"message": "Video deleted successfully"})
+    # Remove the JSON results file
+    if os.path.exists(json_path):
+        os.remove(json_path)
+    else:
+        return jsonify({"error": "JSON results not found"}), 404
+
+    return jsonify({"message": "Video and associated results deleted successfully"}), 200
+
 
 if __name__ == "__main__":
     init_db()
