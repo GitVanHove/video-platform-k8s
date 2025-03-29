@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/UploadPage.css";
 
 const UploadPage = () => {
   const [file, setFile] = useState(null);
@@ -11,7 +12,7 @@ const UploadPage = () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("http://localhost:5000/upload", {
+    const response = await fetch("", {
       method: "POST",
       body: formData,
     });
@@ -23,10 +24,10 @@ const UploadPage = () => {
   };
 
   return (
-    <div>
-      <h1>Upload a Video</h1>
-      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-      <button onClick={handleUpload}>Upload</button>
+    <div className="upload-container">
+      <h1 className="upload-title">Upload a Video</h1>
+      <input type="file" className="upload-input" onChange={(e) => setFile(e.target.files[0])} />
+      <button className="upload-btn" onClick={handleUpload}>Upload</button>
     </div>
   );
 };

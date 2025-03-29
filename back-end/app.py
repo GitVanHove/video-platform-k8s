@@ -4,12 +4,14 @@ import sqlite3
 import bcrypt
 import os
 import uuid
-import random
+from flask_cors import CORS
+
 
 
 from utils import wait_for_file 
 
 app = Flask(__name__)
+CORS(app, origins="http://localhost:3000", supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 DATABASE = "users.db"
 
 UPLOAD_FOLDER = "uploads"
