@@ -22,7 +22,7 @@ const HomePage = () => {
   
 
   const handleDelete = (id,file) => {
-    fetch(`http://127.0.0.1:5000/videos/${id}/${file}`, { method: "DELETE" })
+    fetch(`http://127.0.0.1:5000/video/${id}/${file}`, { method: "DELETE" })
       .then(() => setVideos(videos.filter((video) => video.id !== id)))
       .catch((err) => console.error("Error deleting video:", err));
   };

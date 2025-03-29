@@ -27,7 +27,7 @@ const VideoDetailsPage = () => {
   }, [id]);
 
   const handleDelete = () => {
-    fetch(`http://127.0.0.1:5000/videos/1/${id}`, { method: "DELETE" })
+    fetch(`http://127.0.0.1:5000/video/1/${id}`, { method: "DELETE" })
       .then(() => navigate("/"))
       .catch((err) => console.error("Error deleting video:", err));
   };
