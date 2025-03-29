@@ -10,9 +10,10 @@ const UploadPage = () => {
     if (!file) return alert("Choose a file first!");
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("video", file); // Key must match Flask ("video")
 
-    const response = await fetch("", {
+    const userId = 1; // Replace with the actual user ID
+    const response = await fetch(`http://127.0.0.1:5000/upload/${userId}`, {
       method: "POST",
       body: formData,
     });
@@ -20,6 +21,9 @@ const UploadPage = () => {
     if (response.ok) {
       alert("Upload successful!");
       navigate("/");
+    } else {
+      const errorData = await response.json();
+      alert(`Upload failed: ${errorData.error}`);
     }
   };
 
