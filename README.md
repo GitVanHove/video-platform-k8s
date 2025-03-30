@@ -1,5 +1,10 @@
 # **Video Platform (Kubernetes & Docker)**
 
+## **Project overview**
+
+This is a web-based video platform that allows users to upload, manage, and analyze videos using an AI model.
+The frontend runs in the browser at http://localhost:3000, while the backend runs at http://127.0.0.1:5000.
+
 ## **Installation Instructions**  
 
 To install and run this project, follow these steps:
