@@ -23,6 +23,15 @@ The initial setup may take a while as it downloads and sets up dependencies.
 
 ---
 
+### **3. Close the project**  
+You can use ctrl+c stop the project and then use this command to close all running containers 
+
+```sh
+docker-compose down
+```
+
+---
+
 ## **Predefined Users**  
 The project includes a few hardcoded users for testing:
 
