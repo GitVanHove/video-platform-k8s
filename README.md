@@ -44,7 +44,7 @@ Before running this project, ensure you have:
 
 ---
 
-## **Contributing**  
-If you'd like to contribute or suggest improvements, feel free to fork the repository and submit a pull request.  
-
+## **Video project**  
+ youtube: https://youtu.be/oFRQjO3ob0w
+ drive: https://drive.google.com/file/d/15nhtGChcGOYo-ISTj5IrluK3UlDi3xz7/view?usp=drive_link
 ---
