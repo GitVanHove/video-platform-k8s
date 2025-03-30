@@ -8,9 +8,16 @@ const VideoDetailsPage = () => {
   const [media, setMedia] = useState(null);
   const [detectedObjects, setDetectedObjects] = useState(null); // Store detected objects
 
+  const userId = localStorage.getItem("user_id"); 
+
   useEffect(() => {
+    if (!userId) {
+      alert("User not logged in!");
+      return;
+    }
+  
     if (id) {
-      fetch(`http://127.0.0.1:5000/detail/1/${id}`)
+      fetch(`http://127.0.0.1:5000/detail/${userId}/${id}`)
         .then((res) => res.json())
         .then((data) => {
           setMedia(data);
@@ -24,10 +31,10 @@ const VideoDetailsPage = () => {
         })
         .catch((err) => console.error("Error fetching media data:", err));
     }
-  }, [id]);
+  }, [id, userId]);
 
   const handleDelete = () => {
-    fetch(`http://127.0.0.1:5000/video/1/${id}`, { method: "DELETE" })
+    fetch(`http://127.0.0.1:5000/video/${userId}/${id}`, { method: "DELETE" })
       .then(() => navigate("/"))
       .catch((err) => console.error("Error deleting video:", err));
   };

@@ -5,9 +5,15 @@ import "../styles/HomePage.css";
 
 const HomePage = () => {
   const [videos, setVideos] = useState([]);
+  const userId = localStorage.getItem("user_id"); 
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/videos/1") // Fetch video list
+    if (!userId) {
+      alert("User not logged in!");
+      return;
+    }
+
+    fetch(`http://127.0.0.1:5000/videos/${userId}`) // Fetch video list
       .then((res) => res.json())
       .then((data) => {
         const formattedVideos = data.videos.map((file) => ({
@@ -17,7 +23,7 @@ const HomePage = () => {
         setVideos(formattedVideos);
       })
       .catch((err) => console.error("Error fetching videos:", err));
-  }, []);
+  }, [userId]); 
 
   
 

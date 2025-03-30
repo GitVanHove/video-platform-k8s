@@ -9,10 +9,13 @@ const UploadPage = () => {
   const handleUpload = async () => {
     if (!file) return alert("Choose a file first!");
 
-    const formData = new FormData();
-    formData.append("video", file); // Key must match Flask ("video")
+    const userId = localStorage.getItem("user_id"); 
+    if (!userId) return alert("User not logged in!");
 
-    const userId = 1; // Replace with the actual user ID
+    const formData = new FormData();
+    formData.append("video", file); 
+
+
     const response = await fetch(`http://127.0.0.1:5000/upload/${userId}`, {
       method: "POST",
       body: formData,
