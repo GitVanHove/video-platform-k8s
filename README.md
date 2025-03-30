@@ -5,6 +5,8 @@
 This is a web-based video platform that allows users to upload, manage, and analyze videos using an AI model.
 The frontend runs in the browser at http://localhost:3000, while the backend runs at http://127.0.0.1:5000.
 
+⚠ **Note:** Make sure nothing else runs on the ports 3000, 5000 or 5001 cause these are used by this project. If these are unavailable the project will not work.
+
 ## **Installation Instructions**  
 
 To install and run this project, follow these steps:
